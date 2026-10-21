@@ -59,7 +59,7 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
   - References to `04 Resources/…`, the practice journal and the vault CLAUDE.md are outside the repo. A colleague can't follow them.
 - **Masters (Paul, 21 Oct).** Three things, three masters:
   - CyberneticsNLP **code**: its GitHub repo.
-  - CyberneticsNLP **data** (`data/inputs/calibre/metadata.db`, `json/`; both gitignored, so not on GitHub): the copy on **cybersonic**. The NorbertX and AshbyX copies are working copies.
+  - CyberneticsNLP **data** (`data/inputs/calibre/metadata.db`, `json/`; both gitignored, so not on GitHub): the copy on **cybersonic**. The NorbertX and AshbyX copies are working copies, kept in step with cybersonic by rsync (Paul, 21 Oct; direction to confirm: pulled from cybersonic, or pushed to it).
   - The Calibre library: the running library on NorbertX (below).
 - **Full snapshots** (all four input files, from one export) are taken from cybersonic only, via the sshfs mount at vault root `cybersonic/CyberneticsNLP/`, never from the Calibre library. The mount goes stale often; if the folder lists empty, stop and ask Paul to run `mcyber`. A new full snapshot needs CyberneticsNLP to have caught up with the running library first.
 - **Private data repo** `cyberneticbookshelf-stack/cybernetic-ontology-data` (proposed 21 Oct; Paul to create it, private and empty). It holds the full snapshots, original `metadata.db` included. When a new snapshot is taken, push it there first, then copy its MANIFEST and `metadata-public.db` into this repo. A local commit for `snapshot 2026-10-19` was prepared on 21 Oct in a cloud clone; it is not pushed yet and is lost if that session ends.
