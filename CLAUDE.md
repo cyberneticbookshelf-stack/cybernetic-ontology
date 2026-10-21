@@ -48,9 +48,7 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
    - refuse to run if the mount is empty or the book ids in `metadata.db` and the index JSONs disagree;
    - compare cybersonic's files with the local mirror and warn if they differ (a stale mirror).
    - Open question: whether bibliographic-only snapshots, taken from the running library on NorbertX, are wanted at all (Paul to decide).
-9. In a CyberneticsNLP session, take the data-master decisions further.
-   - Decided 21 Oct: one-way rsync from cybersonic.
-   - Still open: small data files (`metadata.db`, index JSONs, entity cache, manifests) into a private git repo; the bulk (about 5.7 GB, including the full text and the 2.6 GB `full-text-search.db`) never on GitHub, either under DVC with cybersonic as the remote, or as a checksum manifest committed after each run.
+9. CyberneticsNLP data (Paul, 21 Oct): one-way rsync from cybersonic only. There is no private repo and no DVC for CyberneticsNLP. Record the rule in CyberneticsNLP's own CLAUDE.md in its next session. Optional, not decided: commit a checksum manifest of `json/` and `data/inputs/` after each pipeline run, so a stale mirror can be spotted. The ontology's full snapshots therefore stay in `cybernetic-ontology-data`.
 10. When editing `build_rdf.py`: drop `cyb:rating`.
 
 ## Infrastructure notes
