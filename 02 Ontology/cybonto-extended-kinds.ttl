@@ -1,0 +1,75 @@
+@prefix cyb:  <https://w3id.org/cybernetic-bookshelf/ontology#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# =============================================================================
+# Cybernetics Bookshelf Ontology - EXTENDED KINDS module (prototype, 20 Oct 2026)
+# Adds entity kinds found in the indexes beyond person/concept/organisation/
+# location, plus derived (property-chain) relations used to test inference.
+# Kept separate from cybonto.ttl so the core stays stable while this is tested.
+# =============================================================================
+
+<https://w3id.org/cybernetic-bookshelf/ontology/extended-kinds>
+    a owl:Ontology ;
+    owl:versionInfo "0.1.0-prototype" ;
+    rdfs:comment "Prototype module: extra entity kinds and derived relations. Not yet part of the core ontology."@en .
+
+# --- new kinds (all under cyb:Entity; none declared disjoint) -----------------
+
+cyb:Event a owl:Class ; rdfs:label "Event"@en ; rdfs:subClassOf cyb:Entity ;
+    rdfs:comment "Something that happened: wars, revolutions, crises, conferences (e.g. Cold War, Macy Conferences)."@en .
+
+cyb:Activity a owl:Class ; rdfs:label "Activity"@en ; rdfs:subClassOf cyb:Event ;
+    rdfs:comment "An intentional undertaking by agents."@en .
+
+cyb:Project a owl:Class ; rdfs:label "Project"@en ; rdfs:subClassOf cyb:Activity ;
+    rdfs:comment "A planned, bounded activity (e.g. Project Cybersyn, Manhattan Project)."@en .
+
+cyb:Work a owl:Class ; rdfs:label "Work"@en ; rdfs:subClassOf cyb:Entity ;
+    rdfs:comment "An intellectual or artistic creation named in an index (book, article, film), as distinct from a copy in the collection."@en .
+
+cyb:Artefact a owl:Class ; rdfs:label "Artefact"@en ; rdfs:subClassOf cyb:Entity ;
+    rdfs:comment "A made thing: machine, device, model built (e.g. Homeostat, ENIAC)."@en .
+
+cyb:Period a owl:Class ; rdfs:label "Period"@en ; rdfs:subClassOf cyb:Entity ;
+    rdfs:comment "A named span of history (e.g. Enlightenment, Renaissance)."@en .
+
+cyb:Group a owl:Class ; rdfs:label "Group, movement or school"@en ; rdfs:subClassOf cyb:Entity ;
+    rdfs:comment "An intellectual circle, school or movement (e.g. Vienna Circle, Ratio Club, Frankfurt School)."@en .
+
+cyb:kind_event    a cyb:EntityKind ; skos:prefLabel "event"@en ;    skos:inScheme cyb:EntityKindScheme .
+cyb:kind_project  a cyb:EntityKind ; skos:prefLabel "project"@en ;  skos:inScheme cyb:EntityKindScheme .
+cyb:kind_work     a cyb:EntityKind ; skos:prefLabel "work"@en ;     skos:inScheme cyb:EntityKindScheme .
+cyb:kind_artefact a cyb:EntityKind ; skos:prefLabel "artefact"@en ; skos:inScheme cyb:EntityKindScheme .
+cyb:kind_period   a cyb:EntityKind ; skos:prefLabel "period"@en ;   skos:inScheme cyb:EntityKindScheme .
+cyb:kind_group    a cyb:EntityKind ; skos:prefLabel "group"@en ;    skos:inScheme cyb:EntityKindScheme .
+
+cyb:method_prototype_rules a cyb:ClassificationMethod ;
+    rdfs:label "prototype heading-pattern rules (build_prototype.py, 20 Oct 2026)"@en .
+cyb:method_name_resolver_09b a cyb:ClassificationMethod ;
+    rdfs:label "stand-in resolver: 09b initials rule promoted to identity (prototype only)"@en .
+
+# --- relations ------------------------------------------------------------------
+
+cyb:hasCopyInCollection a owl:ObjectProperty ;
+    rdfs:label "has copy in collection"@en ;
+    rdfs:comment "A work named in an index of which the collection holds a copy (matched on title AND author surname). Shortcut: LRMoo would route this through an expression."@en ;
+    rdfs:domain cyb:Work ; rdfs:range cyb:Book .
+
+cyb:indexMentions a owl:ObjectProperty ;
+    rdfs:label "index mentions"@en ;
+    rdfs:comment "DERIVED: a book's index contains a heading that possibly denotes this entity."@en ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Entity ;
+    owl:propertyChainAxiom ( cyb:hasIndexEntry cyb:normalisesTo cyb:possiblyDenotes ) .
+
+cyb:indexMentionsBook a owl:ObjectProperty ;
+    rdfs:label "index mentions book"@en ;
+    rdfs:comment "DERIVED: book A's index names a work of which book B is the collection's copy. A within-collection reference network built from indexes, not bibliographies."@en ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Book ;
+    owl:propertyChainAxiom ( cyb:indexMentions cyb:hasCopyInCollection ) .
+
+cyb:indexedIn owl:inverseOf cyb:indexes .
+cyb:indexes a owl:ObjectProperty ; rdfs:label "indexes (term)"@en ;
+    rdfs:comment "DERIVED inverse of cyb:indexedIn: book -> index term."@en .

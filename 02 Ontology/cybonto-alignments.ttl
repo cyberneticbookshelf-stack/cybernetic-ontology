@@ -1,0 +1,62 @@
+@prefix cyb:    <https://w3id.org/cybernetic-bookshelf/ontology#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix bibo:   <http://purl.org/ontology/bibo/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix crm:    <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix lrmoo:  <http://iflastandards.info/ns/lrm/lrmoo/> .
+@prefix schema: <https://schema.org/> .
+
+# =============================================================================
+# ALIGNMENT module (prototype, 20 Oct 2026): cyb: -> CIDOC-CRM, LRMoo, schema.org,
+# PROV-O, SKOS. Alignment is by rdfs:subClassOf / subPropertyOf ONLY (one-way):
+# "every cyb:X is also a Y", never the converse. No owl:imports: the external
+# ontologies are referenced, and only the few of their own axioms that inference
+# needs are copied below as a marked EXCERPT.
+# =============================================================================
+
+<https://w3id.org/cybernetic-bookshelf/ontology/alignments>
+    a owl:Ontology ; owl:versionInfo "0.1.0-prototype" .
+
+# --- cyb -> CIDOC-CRM -----------------------------------------------------------
+cyb:Person       rdfs:subClassOf crm:E21_Person .
+cyb:Creator      rdfs:subClassOf crm:E39_Actor .
+cyb:Organisation rdfs:subClassOf crm:E74_Group .
+cyb:Group        rdfs:subClassOf crm:E74_Group .
+cyb:Location     rdfs:subClassOf crm:E53_Place .
+cyb:Event        rdfs:subClassOf crm:E5_Event .
+cyb:Activity     rdfs:subClassOf crm:E7_Activity .
+cyb:Period       rdfs:subClassOf crm:E4_Period .
+cyb:Artefact     rdfs:subClassOf crm:E22_Human-Made_Object .
+cyb:Concept      rdfs:subClassOf crm:E55_Type .
+
+# --- cyb -> LRMoo (works and their copies) -------------------------------------
+cyb:Work rdfs:subClassOf lrmoo:F1_Work .
+cyb:Book rdfs:subClassOf lrmoo:F3_Manifestation .
+
+# --- cyb -> schema.org ----------------------------------------------------------
+cyb:Book         rdfs:subClassOf schema:Book .
+cyb:Person       rdfs:subClassOf schema:Person .
+cyb:Organisation rdfs:subClassOf schema:Organization .
+cyb:Group        rdfs:subClassOf schema:Organization .
+cyb:Location     rdfs:subClassOf schema:Place .
+cyb:Event        rdfs:subClassOf schema:Event .
+cyb:Project      rdfs:subClassOf schema:Project .
+cyb:Work         rdfs:subClassOf schema:CreativeWork .
+cyb:indexMentions rdfs:subPropertyOf schema:mentions .
+
+# --- cyb -> PROV-O --------------------------------------------------------------
+cyb:Activity rdfs:subClassOf prov:Activity .
+
+# --- EXCERPT of external axioms needed for inference (not cyb: claims) ----------
+# CIDOC-CRM 7.x class hierarchy (excerpt)
+crm:E7_Activity rdfs:subClassOf crm:E5_Event .
+crm:E5_Event    rdfs:subClassOf crm:E4_Period .
+crm:E21_Person  rdfs:subClassOf crm:E39_Actor .
+crm:E74_Group   rdfs:subClassOf crm:E39_Actor .
+# schema.org (excerpt)
+schema:Book    rdfs:subClassOf schema:CreativeWork .
+schema:Project rdfs:subClassOf schema:Organization .

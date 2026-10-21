@@ -1,0 +1,6 @@
+tbox 409 triples; data 1356679 triples
+[1] cyb: terms used 87, undeclared 0 []
+[2] SHACL conforms: True
+[3a] books spot-checked 40, mismatches 0
+[3b] index entries spot-checked 40, mismatches 0
+RESULT: PASS

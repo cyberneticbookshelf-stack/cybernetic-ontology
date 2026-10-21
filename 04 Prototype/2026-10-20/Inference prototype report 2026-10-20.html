@@ -1,0 +1,107 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inference Prototype Report</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--mut:#5c5b57;--line:#dedbd2;--acc:#2f5d8a;--code:#f1efe8}
+@media (prefers-color-scheme:dark){:root{--bg:#17181a;--fg:#e8e6e1;--mut:#a8a59d;--line:#34352f;--acc:#8fb7e0;--code:#222320}}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 Georgia,"Iowan Old Style",serif;max-width:860px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.7em;line-height:1.25} h2{margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em;font-size:1.25em}
+code{background:var(--code);padding:.05em .3em;border-radius:3px;font-size:.88em} pre{background:var(--code);padding:12px;overflow-x:auto;border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:.9em;display:block;overflow-x:auto} th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+a{color:var(--acc)} pre.mermaid{background:transparent;text-align:center}
+</style></head><body><h1>Inference over mixed ontologies: a 50-book prototype (20 October 2026)</h1>
+<h2>What was tested</h2>
+<p>The question was what a reasoner does with the Cybernetics Bookshelf graph once its own <code>cyb:</code> terms are aligned to several public ontologies at once. The ontologies were CIDOC-CRM, LRMoo, schema.org, PROV-O, FOAF and SKOS. The test took 50 books from the 2026-10-20 build:</p>
+<ul>
+<li>16 purposive: copies of works that other indexes name, and books whose indexes mention Project Cybersyn, the Cold War, the Macy Conferences or "Wiener, N.";</li>
+<li>34 drawn at random (seed 99), stratified by decade, from the 253 books whose index extracted cleanly ("ok", at least 100 headings).</li>
+</ul>
+<p>The purposive books overrepresent the cases under test, so the counts below illustrate behaviour; they are not estimates for the collection. The full list is in <code>selection.md</code>.</p>
+<p>New entity kinds were added to the 50-book subgraph by crude heading-pattern rules (confidence 0.5): event, project, work, artefact, period and group. Works named in indexes were linked to their copy in the collection where title and author surname both match. Three ontology modules sit beside the core: <code>cybonto-extended-kinds.ttl</code> (new kinds and derived relations defined by property chains), <code>cybonto-alignments.ttl</code> (subclass-only alignments, plus a marked excerpt of the external axioms the reasoner needs) and <code>stress-test-bfo.ttl</code> (a strict upper ontology, used only in scenario D).</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Contents</th>
+<th>Triples before → after OWL RL (owlrl)</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A core</td>
+<td>data + core ontology</td>
+<td>71,468 → 144,890</td>
+<td>49 s</td>
+</tr>
+<tr>
+<td>B aligned</td>
+<td>A + new kinds + alignments</td>
+<td>71,582 → 165,546</td>
+<td>74 s</td>
+</tr>
+<tr>
+<td>C resolved</td>
+<td>B + stand-in name resolver (30 <code>owl:sameAs</code> between person variants, from 09b's initials rule)</td>
+<td>71,612 → 166,100</td>
+<td>96 s</td>
+</tr>
+<tr>
+<td>D strict</td>
+<td>B + "one entity per heading across kinds" + BFO upper ontology</td>
+<td>71,623 → 171,024</td>
+<td>74 s</td>
+</tr>
+</tbody>
+</table>
+<p>The reasoning ran on the slice of the subgraph that carries entities: 3,195 classified headings and their 4,960 index entries. The other 85% of headings in these books (17,753) have no classification, so no alignment or chain applies to them. Including them pushed OWL RL materialisation past 7 GB of memory.</p>
+<h2>What inference added</h2>
+<p><strong>One graph, several vocabularies.</strong> With the alignments loaded (B), the same data answers queries in each vocabulary's own terms, with nothing extra asserted:</p>
+<ul>
+<li>CIDOC-CRM: 676 E21 Person, 975 E39 Actor, 79 E5 Event, 33 E7 Activity, 6 E22 Human-Made Object;</li>
+<li>LRMoo: 226 F1 Work and 60 F3 Manifestation (the 50 books, plus 10 collection copies of indexed works);</li>
+<li>schema.org: 79 Event and 286 CreativeWork.</li>
+</ul>
+<p>Scenario A, without the alignments, yields none of these; only the FOAF and SKOS types that the core ontology already declares appear.</p>
+<p><strong>Derived relations.</strong> The property chains produced 4,761 book → entity "index mentions". They also produced <strong>30 book → book links</strong>, where one book's index names a work held as another book in the collection. Some examples:</p>
+<ul>
+<li><em>Whole Earth: The Many Lives of Stewart Brand</em> links to nine collection books, including <em>Laws of Form</em>, <em>Mind and Nature</em> and <em>Cybernetics</em>;</li>
+<li><em>Think Tank Aesthetics</em> links to six, including <em>Design for a Brain</em>, <em>Brain of the Firm</em> and <em>Cybernetic Revolutionaries</em>;</li>
+<li><em>Angels Fear</em> links to <em>Steps to an Ecology of Mind</em>.</li>
+</ul>
+<p>This is a within-collection reference network built from indexes alone, without parsing bibliographies. Spot checks of four links against the raw indexes all matched.</p>
+<p><strong>Name resolution.</strong> Before resolution (B), "Wiener, Norbert" appears in 16 of the 50 books and "Wiener, N." in 5 others, as two separate persons. With the 30 <code>owl:sameAs</code> links (C), they become one person mentioned in <strong>21</strong> books. The same happens to Turing (3 → 5) and Minsky (2 → 3). Counting the raw index files for the same books gives exactly these figures. This is the reason to resolve identity before any entity-level counting. It also shows the cost: <code>owl:sameAs</code> copies every statement across the pair, so one wrong merge would contaminate both persons wholesale.</p>
+<h2>What inference did not catch: three lessons about mixing</h2>
+<p><strong>Consistent nonsense.</strong> In schema.org, Project is a subclass of Organization; in CIDOC-CRM, a project is an Activity, which is an Event, which is a Period. After inference, Project Cybersyn is simultaneously a <code>schema:Organization</code>, a <code>crm:E7_Activity</code>, a <code>crm:E5_Event</code>, a <code>crm:E4_Period</code> and a <code>prov:Activity</code>. Nothing is formally contradicted, because neither vocabulary declares the relevant classes disjoint, so the reasoner raises no flag. Yet a query for "organisations" in schema.org terms now returns projects. More broadly, a query for CIDOC "periods" returns 86 resources: 7 periods and all 79 events. Mixed alignments need review queries or SHACL checks for this kind of drift; consistency checking alone won't find it.</p>
+<p><strong>Strict upper ontologies break non-disjoint kinds.</strong> Scenario D merges the per-kind entities of each heading into one entity: "Cold War" as concept and as event become the same resource. The concept entity also inherits the BFO alignment as a continuant and the event entity as an occurrent, which BFO declares disjoint. That gives <strong>24 clashes</strong>, the concept/event pairs of 12 headings: Cold War, Cuban Missile Crisis, Industrial Revolution, Macy Conferences, Project Cybersyn, Marshall Plan, the world wars and others. CIDOC-CRM accepts the same merged resources silently.</p>
+<p>The current design mints one entity per kind and per heading, so the clash cannot arise. But it means "Cold War the concept" and "Cold War the event" are two resources. Whether they should be one is a modelling decision, and a strict upper ontology would forbid it.</p>
+<p><strong>Reasoners differ in what they implement.</strong> <code>reasonable</code> (Rust) completes each scenario in 8–9 s but silently skips property chains (OWL 2 RL rule prp-spo2), so every derived relation came out as zero. <code>owlrl</code> (the Python reference implementation) does chains but takes 50–100 s on 72k triples, about 10× slower. Neither reported the BFO clash itself: <code>owlrl</code> collects inconsistencies as messages rather than failing, and <code>reasonable</code> skips the disjointness rule. The 24 clashes were found by an explicit query. Verifying a reasoner's coverage on a toy case before trusting its output turned out to be necessary.</p>
+<h2>Quality of the rule-based new kinds</h2>
+<p>A random sample of 40 of the 356 rule-based classifications was checked by reading the headings (Claude's judgement, not yours):</p>
+<ul>
+<li><strong>Overall:</strong> 35 were plausible.</li>
+<li><strong>Works:</strong> almost all right, because the rule requires the parenthetical to be a known person surname.</li>
+<li><strong>Events:</strong> the weakest kind. "Freudian Revolution" and "Automatization of War" are concepts or topics; "Humanitarian Crisis" is generic; "pre-cold war" is a period fragment.</li>
+</ul>
+<p>The same work can also appear under two headings, e.g. <em>Steps to an Ecology of Mind</em> "(G. Bateson)" and "(Bateson)". Works need the same name resolution as persons.</p>
+<h2>What this suggests</h2>
+<ul>
+<li><strong>Keep the alignments subclass-only, to loose vocabularies.</strong> CIDOC-CRM, LRMoo, schema.org, PROV and SKOS combine without contradiction. Avoid tying to a strict upper ontology such as BFO or DOLCE unless the non-disjoint-kinds principle is given up.</li>
+<li><strong>Materialise simple derived relations in the build script.</strong> These are the index-mention chain and the book → book network; doing them in Python is cheap. Keep a reasoner for alignment views and consistency checks rather than for everything. At full collection scale (about 1.4M triples) <code>owlrl</code> would be slow. A triple store with OWL RL rules (GraphDB, RDFox, Jena) is the practical route.</li>
+<li><strong>Add review checks for cross-vocabulary drift</strong>, such as "anything that is both an Organization and an Event". Inference won't raise these itself.</li>
+<li><strong>The name resolver stays the priority.</strong> It decides what gets counted, and an <code>owl:sameAs</code> mistake propagates everywhere. The book → book network is the most promising new output, and its quality depends on resolving works as well as persons.</li>
+</ul>
+<h2>Files (in <code>04 Prototype/2026-10-20/</code> unless noted)</h2>
+<ul>
+<li><code>selection.md</code>: books, reasons, rule-based classifications, work → copy matches, sameAs list.</li>
+<li><code>asserted.ttl</code>: the 50-book subgraph plus prototype classifications.</li>
+<li><code>resolution-sameas.ttl</code> and <code>same-term-identity.ttl</code>: the inputs to scenarios C and D.</li>
+<li><code>results-owlrl.json</code> and <code>results-reasonable.json</code>: all measurements per scenario.</li>
+<li><code>inferred-B-owlrl.ttl</code>: the closure for scenario B.</li>
+<li>Ontology modules: <code>02 Ontology/cybonto-extended-kinds.ttl</code>, <code>cybonto-alignments.ttl</code>, <code>stress-test-bfo.ttl</code>.</li>
+<li>Code: <code>_code/prototype/build_prototype.py</code>, <code>_code/prototype/infer_prototype.py</code>.</li>
+</ul>
+<p>To rerun, from the project root (needs rdflib, owlrl, reasonable):</p>
+<pre><code>python3 &quot;_code/prototype/build_prototype.py&quot; --snapshot &quot;snapshot 2026-10-19&quot; --tag 2026-10-20
+python3 &quot;_code/prototype/infer_prototype.py&quot; --tag 2026-10-20 --reasoner owlrl
+</code></pre>
+</body></html>

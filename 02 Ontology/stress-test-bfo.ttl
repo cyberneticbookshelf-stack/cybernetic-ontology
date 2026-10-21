@@ -1,0 +1,23 @@
+@prefix cyb:  <https://w3id.org/cybernetic-bookshelf/ontology#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix bfo:  <http://purl.obolibrary.org/obo/> .
+
+# =============================================================================
+# STRESS TEST ONLY - not part of the ontology. What happens if cyb: kinds are
+# aligned to a strict upper ontology (BFO 2020) that makes continuants and
+# occurrents disjoint? Loaded only by infer_prototype.py, scenario D.
+# =============================================================================
+
+# BFO excerpt
+bfo:BFO_0000002 rdfs:label "continuant" .
+bfo:BFO_0000003 rdfs:label "occurrent" .
+bfo:BFO_0000031 rdfs:label "generically dependent continuant" ; rdfs:subClassOf bfo:BFO_0000002 .
+bfo:BFO_0000040 rdfs:label "material entity" ; rdfs:subClassOf bfo:BFO_0000002 .
+bfo:BFO_0000015 rdfs:label "process" ; rdfs:subClassOf bfo:BFO_0000003 .
+bfo:BFO_0000002 owl:disjointWith bfo:BFO_0000003 .
+
+# a plausible-looking alignment
+cyb:Concept  rdfs:subClassOf bfo:BFO_0000031 .
+cyb:Person   rdfs:subClassOf bfo:BFO_0000040 .
+cyb:Event    rdfs:subClassOf bfo:BFO_0000015 .

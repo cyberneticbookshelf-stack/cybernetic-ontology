@@ -1,0 +1,464 @@
+@prefix cyb:     <https://w3id.org/cybernetic-bookshelf/ontology#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix bibo:    <http://purl.org/ontology/bibo/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+
+# =============================================================================
+# Cybernetics Bookshelf Ontology (cyb:)
+#
+# Two layers:
+#   A. Bibliographic layer, derived from the Calibre relational schema
+#      (metadata.db). One class per entity table; one property per link
+#      table or column. Application-state tables (annotations, feeds,
+#      conversion_options, preferences, last_read_positions, plugin data,
+#      *_dirtied) are deliberately not modelled.
+#   B. Index layer, derived from the back-of-book indexes extracted by the
+#      CyberneticsNLP pipeline (09_extract_index.py, 15_entity_classify.py).
+#      Three levels are kept apart:
+#        IndexEntry  - a heading as printed in ONE book's index (evidence)
+#        IndexTerm   - the corpus-level normalised heading (lowercased key)
+#        Entity      - what the term is judged to denote (Person, Concept,
+#                      Organisation, Location)
+#      The term-to-entity link is a reified EntityClassification carrying its
+#      method, confidence and provenance, because it is a provisional
+#      judgement made on decontextualised strings (principle of context).
+#
+# Design rules
+#   - Entity kinds are NOT declared disjoint: kinds are non-disjoint labels
+#     (inclusion semantics); one resource may carry several kinds.
+#   - Publication types are NOT disjoint either (monograph + textbook).
+#   - Classifications are provisional; nothing here certifies a finding.
+#   - Alignment to standard vocabularies is by rdfs:subClassOf /
+#     rdfs:subPropertyOf only (no owl:equivalentClass), so cyb: terms can be
+#     narrowed later without breaking the alignment.
+#
+# Namespace note: https://w3id.org/cybernetic-bookshelf/ is a PLACEHOLDER
+# until a w3id.org redirect is registered. Change BASE in _code/build_rdf.py
+# and the prefix above together.
+# =============================================================================
+
+<https://w3id.org/cybernetic-bookshelf/ontology>
+    a owl:Ontology ;
+    dcterms:title "Cybernetics Bookshelf Ontology"@en ;
+    dcterms:description "Classes and properties for the Cybernetics Bookshelf corpus: Calibre bibliographic metadata and entities derived from back-of-book indexes (persons, concepts, organisations, locations)."@en ;
+    dcterms:creator "Paul Wong" ;
+    dcterms:contributor "Claude Opus 5.5 (Anthropic)" ;
+    dcterms:created "2026-10-19"^^xsd:date ;
+    owl:versionInfo "0.1.0" ;
+    vann:preferredNamespacePrefix "cyb" ;
+    vann:preferredNamespaceUri "https://w3id.org/cybernetic-bookshelf/ontology#" ;
+    rdfs:comment "Version 0.1.0: first draft. All index-derived classifications are provisional."@en .
+
+# -----------------------------------------------------------------------------
+# A. Bibliographic layer (Calibre metadata.db)
+# -----------------------------------------------------------------------------
+
+cyb:CalibreLibrary a owl:Class ;
+    rdfs:label "Calibre library"@en ;
+    rdfs:subClassOf dcterms:BibliographicResource , prov:Collection ;
+    rdfs:comment "The Calibre library as a whole (table library_id)."@en .
+
+cyb:Book a owl:Class ;
+    rdfs:label "Book"@en ;
+    rdfs:subClassOf bibo:Book ;
+    rdfs:comment "A record in Calibre table books. May be a monograph, anthology, proceedings, etc.; see cyb:hasPublicationType."@en .
+
+cyb:Agent a owl:Class ;
+    rdfs:label "Agent"@en ;
+    rdfs:subClassOf foaf:Agent .
+
+cyb:Creator a owl:Class ;
+    rdfs:label "Creator (Calibre author)"@en ;
+    rdfs:subClassOf cyb:Agent ;
+    rdfs:comment "A record in Calibre table authors. Calibre does not distinguish persons from corporate authors or editors, so no foaf:Person typing is asserted."@en .
+
+cyb:Publisher a owl:Class ;
+    rdfs:label "Publisher"@en ;
+    rdfs:subClassOf cyb:Agent , foaf:Organization ;
+    rdfs:comment "A record in Calibre table publishers."@en .
+
+cyb:Authorship a owl:Class ;
+    rdfs:label "Authorship"@en ;
+    rdfs:comment "Qualified link between a book and a creator, recording author order (books_authors_link)."@en .
+
+cyb:Series a owl:Class ;
+    rdfs:label "Series"@en ;
+    rdfs:subClassOf bibo:Series .
+
+cyb:Tag a owl:Class ;
+    rdfs:label "Calibre tag"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "A subject tag from Calibre table tags. Mixed provenance (publisher metadata, LCSH-style headings, user tags)."@en .
+
+cyb:PublicationType a owl:Class ;
+    rdfs:label "Publication type"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "Value of the Calibre custom column 'Publication Type'. An expert judgement, not ground truth; types are non-disjoint."@en .
+
+cyb:Theme a owl:Class ;
+    rdfs:label "Theme"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "Value of the Calibre custom column 'Theme'."@en .
+
+cyb:Source a owl:Class ;
+    rdfs:label "Source"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "Value of the Calibre custom column 'Available at' (where the copy was obtained). Values mix access channels (ANU Library, Internet Archive) and licence-like labels (CCBY)."@en .
+
+cyb:Identifier a owl:Class ;
+    rdfs:label "Identifier"@en ;
+    rdfs:comment "A typed identifier from Calibre table identifiers (isbn, google, amazon, doi, ...)."@en .
+
+cyb:BookFile a owl:Class ;
+    rdfs:label "Book file"@en ;
+    rdfs:subClassOf dcterms:BibliographicResource ;
+    rdfs:comment "A stored format of a book (Calibre table data): PDF, EPUB, MOBI."@en .
+
+cyb:IndexStatus a owl:Class ;
+    rdfs:label "Index status"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "Outcome of back-of-book index extraction for a book: ok, truncated, garbled, no_index. A covariate, not a quality verdict on the book."@en .
+
+# Object properties ----------------------------------------------------------
+
+cyb:inLibrary a owl:ObjectProperty ;
+    rdfs:label "in library"@en ;
+    rdfs:subPropertyOf dcterms:isPartOf ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:CalibreLibrary .
+
+cyb:hasAuthorship a owl:ObjectProperty ;
+    rdfs:label "has authorship"@en ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Authorship .
+
+cyb:agent a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "agent"@en ;
+    rdfs:domain cyb:Authorship ; rdfs:range cyb:Creator .
+
+cyb:publishedBy a owl:ObjectProperty ;
+    rdfs:label "published by"@en ;
+    rdfs:subPropertyOf dcterms:publisher ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Publisher .
+
+cyb:inSeries a owl:ObjectProperty ;
+    rdfs:label "in series"@en ;
+    rdfs:subPropertyOf dcterms:isPartOf ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Series .
+
+cyb:hasTag a owl:ObjectProperty ;
+    rdfs:label "has tag"@en ;
+    rdfs:subPropertyOf dcterms:subject ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Tag .
+
+cyb:hasPublicationType a owl:ObjectProperty ;
+    rdfs:label "has publication type"@en ;
+    rdfs:subPropertyOf dcterms:type ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:PublicationType ;
+    rdfs:comment "Multi-valued. Filters must use inclusion semantics (admit if any approved type is present)."@en .
+
+cyb:hasTheme a owl:ObjectProperty ;
+    rdfs:label "has theme"@en ;
+    rdfs:subPropertyOf dcterms:subject ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Theme .
+
+cyb:availableAt a owl:ObjectProperty ;
+    rdfs:label "available at"@en ;
+    rdfs:subPropertyOf dcterms:source ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Source .
+
+cyb:hasIdentifier a owl:ObjectProperty ;
+    rdfs:label "has identifier"@en ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:Identifier .
+
+cyb:hasFile a owl:ObjectProperty ;
+    rdfs:label "has file"@en ;
+    rdfs:subPropertyOf dcterms:hasFormat ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:BookFile .
+
+cyb:hasIndexStatus a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "has index status"@en ;
+    rdfs:domain cyb:Book ; rdfs:range cyb:IndexStatus .
+
+# Datatype properties ---------------------------------------------------------
+
+cyb:calibreId a owl:DatatypeProperty ;
+    rdfs:label "Calibre id"@en ;
+    rdfs:comment "Row id in the Calibre table. NOT stable: ids were reassigned in the July 2026 reconstruction. IRIs for books are minted from the Calibre uuid instead."@en ;
+    rdfs:range xsd:integer .
+
+cyb:calibreUuid a owl:DatatypeProperty ;
+    rdfs:label "Calibre uuid"@en ;
+    rdfs:subPropertyOf dcterms:identifier ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:string .
+
+cyb:sortTitle a owl:DatatypeProperty ;
+    rdfs:label "sort title"@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:string .
+
+cyb:sortName a owl:DatatypeProperty ;
+    rdfs:label "sort name"@en ;
+    rdfs:range xsd:string .
+
+cyb:authorSort a owl:DatatypeProperty ;
+    rdfs:label "author sort"@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:string .
+
+cyb:addedToLibrary a owl:DatatypeProperty ;
+    rdfs:label "added to library"@en ;
+    rdfs:subPropertyOf dcterms:dateAccepted ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:dateTime .
+
+cyb:hasCover a owl:DatatypeProperty ;
+    rdfs:label "has cover"@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:boolean .
+
+cyb:libraryPath a owl:DatatypeProperty ;
+    rdfs:label "library path"@en ;
+    rdfs:comment "Path of the book folder relative to the Calibre library root."@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:string .
+
+cyb:seriesIndex a owl:DatatypeProperty ;
+    rdfs:label "series index"@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:decimal .
+
+cyb:position a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "position"@en ;
+    rdfs:comment "1-based order of the creator in the book's author list (Calibre link-row order)."@en ;
+    rdfs:domain cyb:Authorship ; rdfs:range xsd:positiveInteger .
+
+cyb:rating a owl:DatatypeProperty ;
+    rdfs:label "rating"@en ;
+    rdfs:comment "Calibre rating, 0-10 scale (stars x 2). A personal judgement."@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:integer .
+
+cyb:pageCount a owl:DatatypeProperty ;
+    rdfs:label "page count"@en ;
+    rdfs:subPropertyOf bibo:numPages ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:integer .
+
+cyb:sourceUrl a owl:DatatypeProperty ;
+    rdfs:label "source URL"@en ;
+    rdfs:comment "Calibre custom column 'URL'."@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:anyURI .
+
+cyb:identifierScheme a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "identifier scheme"@en ;
+    rdfs:domain cyb:Identifier ; rdfs:range xsd:string .
+
+cyb:identifierValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "identifier value"@en ;
+    rdfs:subPropertyOf rdf:value ;
+    rdfs:domain cyb:Identifier ; rdfs:range xsd:string .
+
+cyb:fileFormat a owl:DatatypeProperty ;
+    rdfs:label "file format"@en ;
+    rdfs:subPropertyOf dcterms:format ;
+    rdfs:domain cyb:BookFile ; rdfs:range xsd:string .
+
+cyb:fileName a owl:DatatypeProperty ;
+    rdfs:label "file name"@en ;
+    rdfs:domain cyb:BookFile ; rdfs:range xsd:string .
+
+cyb:byteSize a owl:DatatypeProperty ;
+    rdfs:label "byte size"@en ;
+    rdfs:domain cyb:BookFile ; rdfs:range xsd:integer .
+
+cyb:indexTermCount a owl:DatatypeProperty ;
+    rdfs:label "index term count"@en ;
+    rdfs:domain cyb:Book ; rdfs:range xsd:integer .
+
+# -----------------------------------------------------------------------------
+# B. Index layer (CyberneticsNLP indexes)
+# -----------------------------------------------------------------------------
+
+cyb:IndexEntry a owl:Class ;
+    rdfs:label "Index entry"@en ;
+    rdfs:comment "A heading as it appears (after canonical casing, 09_extract_index._canonical_term) in the back-of-book index of one book. Evidence, not interpretation. Page locators are not retained by the extractor."@en .
+
+cyb:IndexTerm a owl:Class ;
+    rdfs:label "Index term"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "A corpus-level index heading: all entries whose lowercased form is identical (index_vocab.json). Member of cyb:CorpusIndexVocabulary. A string-level unit; it does not by itself say what is denoted."@en .
+
+cyb:Entity a owl:Class ;
+    rdfs:label "Index-derived entity"@en ;
+    rdfs:comment "Something an index term is judged to denote. Kinds below are not disjoint."@en .
+
+cyb:Person a owl:Class ;
+    rdfs:label "Person"@en ;
+    rdfs:subClassOf cyb:Entity , foaf:Person .
+
+cyb:Organisation a owl:Class ;
+    rdfs:label "Organisation"@en ;
+    rdfs:subClassOf cyb:Entity , foaf:Organization .
+
+cyb:Location a owl:Class ;
+    rdfs:label "Location"@en ;
+    rdfs:subClassOf cyb:Entity , dcterms:Location .
+
+cyb:Concept a owl:Class ;
+    rdfs:label "Concept"@en ;
+    rdfs:subClassOf cyb:Entity , skos:Concept .
+
+cyb:EntityKind a owl:Class ;
+    rdfs:label "Entity kind"@en ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:comment "The kind assigned by a classification: person, concept, organisation, location, or suppress (judged not to be an entity, e.g. a work title or extraction noise)."@en .
+
+cyb:EntityClassification a owl:Class ;
+    rdfs:label "Entity classification"@en ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:comment "A provisional judgement that an index term denotes an entity of a given kind. Records method (prov:wasAttributedTo), confidence and any NER label. One term may have several."@en .
+
+cyb:ClassificationMethod a owl:Class ;
+    rdfs:label "Classification method"@en ;
+    rdfs:subClassOf prov:SoftwareAgent ;
+    rdfs:comment "heuristic rules, spaCy NER, default fallback. Manual corrections are attributed to a prov:Person."@en .
+
+cyb:NameMatch a owl:Class ;
+    rdfs:label "Name match"@en ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:comment "A candidate identity between a Calibre creator and an index-derived person, found by name inversion. Provisional; not an owl:sameAs."@en .
+
+# Object properties ----------------------------------------------------------
+
+cyb:inIndexOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "in index of"@en ;
+    rdfs:domain cyb:IndexEntry ; rdfs:range cyb:Book .
+
+cyb:hasIndexEntry a owl:ObjectProperty ;
+    rdfs:label "has index entry"@en ;
+    owl:inverseOf cyb:inIndexOf .
+
+cyb:normalisesTo a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "normalises to"@en ;
+    rdfs:domain cyb:IndexEntry ; rdfs:range cyb:IndexTerm .
+
+cyb:indexedIn a owl:ObjectProperty ;
+    rdfs:label "indexed in"@en ;
+    rdfs:comment "Shortcut: the term appears in this book's index. Entailed by the entry chain (owl:propertyChainAxiom)."@en ;
+    rdfs:domain cyb:IndexTerm ; rdfs:range cyb:Book ;
+    owl:propertyChainAxiom ( [ owl:inverseOf cyb:normalisesTo ] cyb:inIndexOf ) .
+
+cyb:mergedInto a owl:ObjectProperty ;
+    rdfs:label "merged into"@en ;
+    rdfs:comment "Variant term folded into a canonical term by 09b_build_index_analysis.py before analysis. A pipeline decision, not an identity assertion; both terms keep their own entries."@en ;
+    rdfs:domain cyb:IndexTerm ; rdfs:range cyb:IndexTerm .
+
+cyb:mergedByInitials a owl:ObjectProperty ;
+    rdfs:label "merged by initials"@en ;
+    rdfs:subPropertyOf cyb:mergedInto ;
+    rdfs:comment "Person-name rule: 'Wiener, N.' -> 'Wiener, Norbert' (initials consistent with the fuller form of the same surname)."@en .
+
+cyb:mergedByAccent a owl:ObjectProperty ;
+    rdfs:label "merged by accent"@en ;
+    rdfs:subPropertyOf cyb:mergedInto ;
+    rdfs:comment "Accent rule: 'Rene' <-> 'René'; the form found in more books is canonical."@en .
+
+cyb:classifies a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:label "classifies"@en ;
+    rdfs:domain cyb:EntityClassification ; rdfs:range cyb:IndexTerm .
+
+cyb:assignedKind a owl:ObjectProperty ;
+    rdfs:label "assigned kind"@en ;
+    rdfs:domain cyb:EntityClassification ; rdfs:range cyb:EntityKind .
+
+cyb:denotes a owl:ObjectProperty ;
+    rdfs:label "denotes"@en ;
+    rdfs:comment "The entity the classification takes the term to denote. Absent for kind 'suppress'."@en ;
+    rdfs:domain cyb:EntityClassification ; rdfs:range cyb:Entity .
+
+cyb:possiblyDenotes a owl:ObjectProperty ;
+    rdfs:label "possibly denotes"@en ;
+    rdfs:comment "Shortcut from term to entity, asserted for every non-suppress classification regardless of confidence. Filter on the classification's confidence for stricter readings."@en ;
+    rdfs:domain cyb:IndexTerm ; rdfs:range cyb:Entity .
+
+cyb:hasLabelSource a owl:ObjectProperty ;
+    rdfs:label "label source"@en ;
+    rdfs:comment "The index term from which the entity was minted."@en ;
+    rdfs:domain cyb:Entity ; rdfs:range cyb:IndexTerm .
+
+cyb:matchesCreator a owl:ObjectProperty ;
+    rdfs:label "matches creator"@en ;
+    rdfs:domain cyb:NameMatch ; rdfs:range cyb:Creator .
+
+cyb:matchesPerson a owl:ObjectProperty ;
+    rdfs:label "matches person"@en ;
+    rdfs:domain cyb:NameMatch ; rdfs:range cyb:Person .
+
+# Datatype properties ---------------------------------------------------------
+
+cyb:entryLabel a owl:DatatypeProperty ;
+    rdfs:label "entry label"@en ;
+    rdfs:subPropertyOf rdfs:label ;
+    rdfs:domain cyb:IndexEntry ; rdfs:range xsd:string .
+
+cyb:termKey a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:label "term key"@en ;
+    rdfs:comment "Lowercased normalised heading; the join key shared by index_vocab.json and entity_types_cache.json."@en ;
+    rdfs:domain cyb:IndexTerm ; rdfs:range xsd:string .
+
+cyb:bookCount a owl:DatatypeProperty ;
+    rdfs:label "book count"@en ;
+    rdfs:comment "Number of books whose index contains the term (from index_vocab.json)."@en ;
+    rdfs:domain cyb:IndexTerm ; rdfs:range xsd:integer .
+
+cyb:confidence a owl:DatatypeProperty ;
+    rdfs:label "confidence"@en ;
+    rdfs:comment "Classifier confidence 0-1 as recorded by 15_entity_classify.py. The entity network admits cached kinds at >= 0.75."@en ;
+    rdfs:range xsd:decimal .
+
+cyb:nerLabel a owl:DatatypeProperty ;
+    rdfs:label "NER label"@en ;
+    rdfs:comment "spaCy entity label (PERSON, ORG, GPE, NORP, EVENT, ...) where recorded."@en ;
+    rdfs:domain cyb:EntityClassification ; rdfs:range xsd:string .
+
+cyb:classificationNote a owl:DatatypeProperty ;
+    rdfs:label "classification note"@en ;
+    rdfs:subPropertyOf skos:note ;
+    rdfs:domain cyb:EntityClassification ; rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Controlled individuals
+# -----------------------------------------------------------------------------
+
+cyb:CorpusIndexVocabulary a skos:ConceptScheme ;
+    rdfs:label "Corpus index vocabulary"@en ;
+    rdfs:comment "All index terms across the corpus (index_vocab.json)."@en .
+
+cyb:PublicationTypeScheme a skos:ConceptScheme ; rdfs:label "Publication types"@en .
+cyb:ThemeScheme           a skos:ConceptScheme ; rdfs:label "Themes"@en .
+cyb:SourceScheme          a skos:ConceptScheme ; rdfs:label "Sources (Available at)"@en .
+cyb:TagScheme             a skos:ConceptScheme ; rdfs:label "Calibre tags"@en .
+cyb:IndexStatusScheme     a skos:ConceptScheme ; rdfs:label "Index extraction status"@en .
+cyb:EntityKindScheme      a skos:ConceptScheme ; rdfs:label "Entity kinds"@en .
+
+cyb:status_ok        a cyb:IndexStatus ; skos:prefLabel "ok"@en ;        skos:inScheme cyb:IndexStatusScheme ;
+    skos:definition "Index found and extracted to its end."@en .
+cyb:status_truncated a cyb:IndexStatus ; skos:prefLabel "truncated"@en ; skos:inScheme cyb:IndexStatusScheme ;
+    skos:definition "Index found; extraction stopped at the character limit, so later headings are missing."@en .
+cyb:status_garbled   a cyb:IndexStatus ; skos:prefLabel "garbled"@en ;   skos:inScheme cyb:IndexStatusScheme ;
+    skos:definition "Index-like region found but most lines fail the quality score (OCR)."@en .
+cyb:status_no_index  a cyb:IndexStatus ; skos:prefLabel "no index"@en ;  skos:inScheme cyb:IndexStatusScheme ;
+    skos:definition "No back-of-book index detected."@en .
+
+cyb:kind_person       a cyb:EntityKind ; skos:prefLabel "person"@en ;       skos:inScheme cyb:EntityKindScheme .
+cyb:kind_concept      a cyb:EntityKind ; skos:prefLabel "concept"@en ;      skos:inScheme cyb:EntityKindScheme .
+cyb:kind_organisation a cyb:EntityKind ; skos:prefLabel "organisation"@en ; skos:inScheme cyb:EntityKindScheme .
+cyb:kind_location     a cyb:EntityKind ; skos:prefLabel "location"@en ;     skos:inScheme cyb:EntityKindScheme .
+cyb:kind_suppress     a cyb:EntityKind ; skos:prefLabel "suppress"@en ;     skos:inScheme cyb:EntityKindScheme ;
+    skos:definition "Judged not to denote an entity of interest (work title, extraction noise, platform credit)."@en .
+
+cyb:method_heuristic a cyb:ClassificationMethod ; rdfs:label "heuristic rules (15_entity_classify.py)"@en .
+cyb:method_spacy     a cyb:ClassificationMethod ; rdfs:label "spaCy NER (15_entity_classify.py)"@en .
+cyb:method_default   a cyb:ClassificationMethod ; rdfs:label "default fallback (15_entity_classify.py)"@en .
+cyb:PaulWong a prov:Person , foaf:Person ;
+    foaf:name "Paul Wong" ;
+    rdfs:seeAlso <https://orcid.org/0000-0001-6515-1860> ;
+    rdfs:comment "Source of manual entity corrections and of the expert publication-type labels."@en .

@@ -1,0 +1,10 @@
+# Persons by book count after folding variant headings into their canonical term
+# (follows cyb:mergedInto, i.e. the same aggregation 09b applies, e.g. "Wiener, N." -> "Wiener, Norbert")
+PREFIX cyb: <https://w3id.org/cybernetic-bookshelf/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?label (COUNT(DISTINCT ?book) AS ?books) WHERE {
+  ?canon cyb:possiblyDenotes ?p . ?p a cyb:Person ; rdfs:label ?label .
+  FILTER NOT EXISTS { ?canon cyb:mergedInto ?other }
+  ?term cyb:mergedInto? ?canon .
+  ?entry cyb:normalisesTo ?term ; cyb:inIndexOf ?book .
+} GROUP BY ?label ORDER BY DESC(?books) LIMIT 15

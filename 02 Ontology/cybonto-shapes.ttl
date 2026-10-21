@@ -1,0 +1,52 @@
+@prefix cyb:     <https://w3id.org/cybernetic-bookshelf/ontology#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+# SHACL shapes for the Cybernetics Bookshelf Ontology (structural checks only;
+# they do not judge whether a classification is correct).
+
+cyb:BookShape a sh:NodeShape ;
+    sh:targetClass cyb:Book ;
+    sh:property [ sh:path dcterms:title ;     sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path cyb:calibreUuid ;   sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path cyb:calibreId ;     sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ] ;
+    sh:property [ sh:path cyb:inLibrary ;     sh:minCount 1 ] ;
+    sh:property [ sh:path dcterms:issued ;    sh:maxCount 1 ; sh:datatype xsd:gYear ] ;
+    sh:property [ sh:path cyb:hasIndexStatus ; sh:maxCount 1 ; sh:class cyb:IndexStatus ] ;
+    sh:property [ sh:path cyb:hasPublicationType ; sh:class cyb:PublicationType ] .
+
+cyb:AuthorshipShape a sh:NodeShape ;
+    sh:targetClass cyb:Authorship ;
+    sh:property [ sh:path cyb:agent ;    sh:minCount 1 ; sh:maxCount 1 ; sh:class cyb:Creator ] ;
+    sh:property [ sh:path cyb:position ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:positiveInteger ] ;
+    sh:property [ sh:path [ sh:inversePath cyb:hasAuthorship ] ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+cyb:IndexEntryShape a sh:NodeShape ;
+    sh:targetClass cyb:IndexEntry ;
+    sh:property [ sh:path cyb:inIndexOf ;    sh:minCount 1 ; sh:maxCount 1 ; sh:class cyb:Book ] ;
+    sh:property [ sh:path cyb:normalisesTo ; sh:minCount 1 ; sh:maxCount 1 ; sh:class cyb:IndexTerm ] ;
+    sh:property [ sh:path cyb:entryLabel ;   sh:minCount 1 ; sh:maxCount 1 ] .
+
+cyb:IndexTermShape a sh:NodeShape ;
+    sh:targetClass cyb:IndexTerm ;
+    sh:property [ sh:path cyb:termKey ;     sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path skos:prefLabel ;  sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path cyb:bookCount ;   sh:minCount 1 ; sh:maxCount 1 ; sh:minInclusive 1 ] .
+
+cyb:EntityClassificationShape a sh:NodeShape ;
+    sh:targetClass cyb:EntityClassification ;
+    sh:property [ sh:path cyb:classifies ;   sh:minCount 1 ; sh:maxCount 1 ; sh:class cyb:IndexTerm ] ;
+    sh:property [ sh:path cyb:assignedKind ; sh:minCount 1 ; sh:class cyb:EntityKind ] ;
+    sh:property [ sh:path prov:wasAttributedTo ; sh:minCount 1 ] ;
+    sh:property [ sh:path cyb:confidence ;   sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:datatype xsd:decimal ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ;
+    sh:property [ sh:path cyb:denotes ;      sh:maxCount 1 ; sh:class cyb:Entity ] .
+
+cyb:EntityShape a sh:NodeShape ;
+    sh:targetClass cyb:Person , cyb:Organisation , cyb:Location , cyb:Concept ;
+    sh:property [ sh:path rdfs:label ;          sh:minCount 1 ] ;
+    sh:property [ sh:path cyb:hasLabelSource ;  sh:minCount 1 ; sh:class cyb:IndexTerm ] .

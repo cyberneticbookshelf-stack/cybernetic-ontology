@@ -1,0 +1,365 @@
+{
+ "A": {
+  "asserted_plus_ontology": 71468,
+  "after_inference": 113750,
+  "seconds": 7.9,
+  "views": {
+   "CIDOC-CRM": {
+    "E21_Person": 0,
+    "E74_Group": 0,
+    "E39_Actor": 0,
+    "E53_Place": 0,
+    "E5_Event": 0,
+    "E7_Activity": 0,
+    "E4_Period": 0,
+    "E22_Human-Made_Object": 0,
+    "E55_Type": 0
+   },
+   "LRMoo": {
+    "F1_Work": 0,
+    "F3_Manifestation": 0
+   },
+   "schema.org": {
+    "Person": 0,
+    "Organization": 0,
+    "Place": 0,
+    "Event": 0,
+    "Project": 0,
+    "CreativeWork": 0,
+    "Book": 0
+   },
+   "PROV / FOAF / SKOS": {
+    "prov:Activity": 0,
+    "foaf:Person": 677,
+    "foaf:Organization": 251,
+    "skos:Concept": 5157
+   }
+  },
+  "cyb_counts": {
+   "Person": 676,
+   "Organisation": 208,
+   "Location": 69,
+   "Concept": 1756,
+   "Event": 46,
+   "Activity": 0,
+   "Project": 33,
+   "Work": 226,
+   "Artefact": 6,
+   "Period": 7,
+   "Group": 38,
+   "Entity": 3065
+  },
+  "indexes (book->term, inverse chain)": 0,
+  "indexMentions (book->entity, chain)": 0,
+  "indexMentionsBook (book->book, chain)": [],
+  "books mentioning person 'wiener, norbert'": null,
+  "books mentioning person 'wiener, n.'": null,
+  "books mentioning person 'turing, alan'": null,
+  "books mentioning person 'minsky, marvin'": null,
+  "sameAs triples (non-reflexive)": 0,
+  "types of project/project-cybersyn": [
+   "Entity",
+   "Project",
+   "Thing"
+  ],
+  "disjointness clashes": 0,
+  "clash examples": [],
+  "typed owl:Nothing": 0
+ },
+ "B": {
+  "asserted_plus_ontology": 71582,
+  "after_inference": 119697,
+  "seconds": 9.1,
+  "views": {
+   "CIDOC-CRM": {
+    "E21_Person": 676,
+    "E74_Group": 246,
+    "E39_Actor": 975,
+    "E53_Place": 69,
+    "E5_Event": 79,
+    "E7_Activity": 33,
+    "E4_Period": 86,
+    "E22_Human-Made_Object": 6,
+    "E55_Type": 1756
+   },
+   "LRMoo": {
+    "F1_Work": 226,
+    "F3_Manifestation": 60
+   },
+   "schema.org": {
+    "Person": 676,
+    "Organization": 279,
+    "Place": 69,
+    "Event": 79,
+    "Project": 33,
+    "CreativeWork": 286,
+    "Book": 60
+   },
+   "PROV / FOAF / SKOS": {
+    "prov:Activity": 33,
+    "foaf:Person": 677,
+    "foaf:Organization": 251,
+    "skos:Concept": 5157
+   }
+  },
+  "cyb_counts": {
+   "Person": 676,
+   "Organisation": 208,
+   "Location": 69,
+   "Concept": 1756,
+   "Event": 79,
+   "Activity": 33,
+   "Project": 33,
+   "Work": 226,
+   "Artefact": 6,
+   "Period": 7,
+   "Group": 38,
+   "Entity": 3065
+  },
+  "indexes (book->term, inverse chain)": 0,
+  "indexMentions (book->entity, chain)": 0,
+  "indexMentionsBook (book->book, chain)": [],
+  "books mentioning person 'wiener, norbert'": null,
+  "books mentioning person 'wiener, n.'": null,
+  "books mentioning person 'turing, alan'": null,
+  "books mentioning person 'minsky, marvin'": null,
+  "sameAs triples (non-reflexive)": 0,
+  "types of project/project-cybersyn": [
+   "Activity",
+   "Activity",
+   "E4_Period",
+   "E5_Event",
+   "E7_Activity",
+   "Entity",
+   "Event",
+   "Event",
+   "Organization",
+   "Project",
+   "Project",
+   "Thing"
+  ],
+  "disjointness clashes": 0,
+  "clash examples": [],
+  "typed owl:Nothing": 0
+ },
+ "C": {
+  "asserted_plus_ontology": 71612,
+  "after_inference": 120057,
+  "seconds": 7.9,
+  "views": {
+   "CIDOC-CRM": {
+    "E21_Person": 676,
+    "E74_Group": 246,
+    "E39_Actor": 975,
+    "E53_Place": 69,
+    "E5_Event": 79,
+    "E7_Activity": 33,
+    "E4_Period": 86,
+    "E22_Human-Made_Object": 6,
+    "E55_Type": 1756
+   },
+   "LRMoo": {
+    "F1_Work": 226,
+    "F3_Manifestation": 60
+   },
+   "schema.org": {
+    "Person": 676,
+    "Organization": 279,
+    "Place": 69,
+    "Event": 79,
+    "Project": 33,
+    "CreativeWork": 286,
+    "Book": 60
+   },
+   "PROV / FOAF / SKOS": {
+    "prov:Activity": 33,
+    "foaf:Person": 677,
+    "foaf:Organization": 251,
+    "skos:Concept": 5157
+   }
+  },
+  "cyb_counts": {
+   "Person": 676,
+   "Organisation": 208,
+   "Location": 69,
+   "Concept": 1756,
+   "Event": 79,
+   "Activity": 33,
+   "Project": 33,
+   "Work": 226,
+   "Artefact": 6,
+   "Period": 7,
+   "Group": 38,
+   "Entity": 3065
+  },
+  "indexes (book->term, inverse chain)": 0,
+  "indexMentions (book->entity, chain)": 0,
+  "indexMentionsBook (book->book, chain)": [],
+  "books mentioning person 'wiener, norbert'": null,
+  "books mentioning person 'wiener, n.'": null,
+  "books mentioning person 'turing, alan'": null,
+  "books mentioning person 'minsky, marvin'": null,
+  "sameAs triples (non-reflexive)": 60,
+  "types of project/project-cybersyn": [
+   "Activity",
+   "Activity",
+   "E4_Period",
+   "E5_Event",
+   "E7_Activity",
+   "Entity",
+   "Event",
+   "Event",
+   "Organization",
+   "Project",
+   "Project",
+   "Thing"
+  ],
+  "disjointness clashes": 0,
+  "clash examples": [],
+  "typed owl:Nothing": 0
+ },
+ "D": {
+  "asserted_plus_ontology": 71623,
+  "after_inference": 125174,
+  "seconds": 8.3,
+  "views": {
+   "CIDOC-CRM": {
+    "E21_Person": 676,
+    "E74_Group": 248,
+    "E39_Actor": 977,
+    "E53_Place": 69,
+    "E5_Event": 91,
+    "E7_Activity": 37,
+    "E4_Period": 102,
+    "E22_Human-Made_Object": 12,
+    "E55_Type": 1778
+   },
+   "LRMoo": {
+    "F1_Work": 226,
+    "F3_Manifestation": 60
+   },
+   "schema.org": {
+    "Person": 676,
+    "Organization": 285,
+    "Place": 69,
+    "Event": 91,
+    "Project": 37,
+    "CreativeWork": 286,
+    "Book": 60
+   },
+   "PROV / FOAF / SKOS": {
+    "prov:Activity": 37,
+    "foaf:Person": 677,
+    "foaf:Organization": 258,
+    "skos:Concept": 5179
+   }
+  },
+  "cyb_counts": {
+   "Person": 676,
+   "Organisation": 215,
+   "Location": 69,
+   "Concept": 1778,
+   "Event": 91,
+   "Activity": 37,
+   "Project": 37,
+   "Work": 226,
+   "Artefact": 12,
+   "Period": 11,
+   "Group": 45,
+   "Entity": 3065
+  },
+  "indexes (book->term, inverse chain)": 0,
+  "indexMentions (book->entity, chain)": 0,
+  "indexMentionsBook (book->book, chain)": [],
+  "books mentioning person 'wiener, norbert'": null,
+  "books mentioning person 'wiener, n.'": null,
+  "books mentioning person 'turing, alan'": null,
+  "books mentioning person 'minsky, marvin'": null,
+  "sameAs triples (non-reflexive)": 58,
+  "types of project/project-cybersyn": [
+   "Activity",
+   "Activity",
+   "BFO_0000002",
+   "BFO_0000003",
+   "BFO_0000015",
+   "BFO_0000031",
+   "Concept",
+   "Concept",
+   "E4_Period",
+   "E55_Type",
+   "E5_Event",
+   "E7_Activity",
+   "Entity",
+   "Event",
+   "Event",
+   "Organization",
+   "Project",
+   "Project",
+   "Thing"
+  ],
+  "disjointness clashes": 24,
+  "clash examples": [
+   [
+    "concept/cold-war",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/cuban-missile-crisis",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/cybersyn-project",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/human-genome-project",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/industrial-revolution",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/macy-conferences",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/marshall-plan",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/project-cybersyn",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/second-industrial-revolution",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/second-world-war",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/vietnam-war-6bfa1226",
+    "BFO_0000002",
+    "BFO_0000003"
+   ],
+   [
+    "concept/world-war",
+    "BFO_0000002",
+    "BFO_0000003"
+   ]
+  ],
+  "typed owl:Nothing": 0
+ }
+}

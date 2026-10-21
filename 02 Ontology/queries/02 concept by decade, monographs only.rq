@@ -1,0 +1,15 @@
+# Books indexing "feedback" by decade, monographs only (inclusion semantics on publication type)
+PREFIX cyb: <https://w3id.org/cybernetic-bookshelf/ontology#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?decade (COUNT(DISTINCT ?book) AS ?books) WHERE {
+  ?term cyb:termKey "feedback" .
+  ?entry cyb:normalisesTo ?term ; cyb:inIndexOf ?book .
+  ?book cyb:hasPublicationType/skos:prefLabel "monograph" ; dcterms:issued ?y .
+  BIND (FLOOR(xsd:integer(STR(?y)) / 10) * 10 AS ?decade)
+} GROUP BY ?decade ORDER BY ?decade

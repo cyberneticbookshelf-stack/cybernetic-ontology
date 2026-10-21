@@ -1,0 +1,133 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cybernetics Ontology Design</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--mut:#5c5b57;--line:#dedbd2;--acc:#2f5d8a;--code:#f1efe8}
+@media (prefers-color-scheme:dark){:root{--bg:#17181a;--fg:#e8e6e1;--mut:#a8a59d;--line:#34352f;--acc:#8fb7e0;--code:#222320}}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 Georgia,"Iowan Old Style",serif;max-width:860px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.7em;line-height:1.25} h2{margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em;font-size:1.25em}
+code{background:var(--code);padding:.05em .3em;border-radius:3px;font-size:.88em} pre{background:var(--code);padding:12px;overflow-x:auto;border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:.9em;display:block;overflow-x:auto} th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+a{color:var(--acc)} pre.mermaid{background:transparent;text-align:center}
+</style></head><body><h1>Cybernetics Bookshelf Ontology - design note (19 October 2026)</h1>
+<h2>Purpose and scope</h2>
+<p>This is an RDF ontology and a generated knowledge graph for the Cybernetics Bookshelf corpus. It has two layers. The <strong>bibliographic layer</strong> takes the Calibre relational schema (<code>metadata.db</code>) as its starting point. The <strong>index layer</strong> covers the back-of-book indexes extracted by CyberneticsNLP, starting with the four entity kinds: person, concept, organisation and location. Version 0.1.0 covers the ontology (<code>02 Ontology/cybonto.ttl</code>), SHACL shapes (<code>cybonto-shapes.ttl</code>), the population script (<code>_code/build_rdf.py</code>), a validator (<code>_code/validate_rdf.py</code>) and six example queries (<code>02 Ontology/queries/</code>). Topics, chapters, keyphrases and co-occurrence edges are out of scope for this version.</p>
+<p>All index-derived classifications are provisional, in line with the CyberneticsNLP standing principle. The graph records judgements together with their provenance; it does not certify anything.</p>
+<h2>Sources</h2>
+<p>The inputs are a frozen snapshot, <code>00 Inputs/snapshot 2026-10-19/</code>: <code>metadata.db</code>, <code>index_terms.json</code>, <code>index_vocab.json</code> and <code>entity_types_cache.json</code>. They were copied from the local copy of the repo (state of 20 Sep 2026) while the sshfs mount was stale. On 19 Oct their sha256 hashes were confirmed <strong>identical to the live repo</strong>. They correspond to the 20 September growth run (755 Calibre books; the canonical run analysed 575). Checksums are in <code>MANIFEST.md</code> and in each build report.</p>
+<h2>Model</h2>
+<pre class="mermaid">flowchart LR
+  subgraph A["A. Bibliographic (metadata.db)"]
+    Book -->|hasAuthorship| Authorship -->|agent| Creator
+    Book -->|publishedBy| Publisher
+    Book -->|hasTag| Tag
+    Book -->|hasPublicationType| PublicationType
+    Book -->|hasTheme / availableAt| Theme_Source["Theme, Source"]
+    Book -->|hasIdentifier / hasFile / inSeries| Misc["Identifier, BookFile, Series"]
+    Book -->|hasIndexStatus| IndexStatus
+  end
+  subgraph B["B. Index (CyberneticsNLP)"]
+    IndexEntry -->|inIndexOf| Book
+    IndexEntry -->|normalisesTo| IndexTerm
+    IndexTerm -->|mergedInto| IndexTerm
+    EntityClassification -->|classifies| IndexTerm
+    EntityClassification -->|denotes| Entity["Person / Concept / Organisation / Location"]
+    EntityClassification -->|wasAttributedTo| Method["heuristic / spaCy / default / Paul (manual)"]
+    NameMatch -->|matchesCreator| Creator
+    NameMatch -->|matchesPerson| Entity
+  end
+</pre>
+
+<p>The index layer has three levels, kept apart on purpose. An <strong>IndexEntry</strong> is a heading as printed in one book's index: evidence. An <strong>IndexTerm</strong> is the corpus-level heading, keyed on the lowercased form that <code>index_vocab.json</code> and <code>entity_types_cache.json</code> share. An <strong>Entity</strong> is what the term is judged to denote. The link from term to entity is a reified <strong>EntityClassification</strong>. It carries the method (<code>prov:wasAttributedTo</code>), the confidence, the spaCy label and any note, because it is a judgement made on decontextualised strings (the principle of context). "University of California" can be a publisher credit or a subject, and the classification layer is where that uncertainty lives. Entity kinds and publication types are <strong>not declared disjoint</strong>, which keeps inclusion semantics open for multi-kind terms.</p>
+<p>Alignment to standard vocabularies is by <code>rdfs:subClassOf</code>/<code>rdfs:subPropertyOf</code> only. For example, <code>cyb:Book ⊑ bibo:Book</code>, <code>cyb:Person ⊑ foaf:Person</code>, <code>cyb:Concept ⊑ skos:Concept</code>, <code>cyb:publishedBy ⊑ dcterms:publisher</code> and <code>cyb:EntityClassification ⊑ prov:Entity</code>. The cyb: terms can therefore be narrowed later without breaking the alignment. <code>owl:equivalentClass</code> was avoided because Calibre's categories do not match the standard ones exactly: a Calibre "author" can be an editor or a corporation, so <code>cyb:Creator</code> is only a <code>foaf:Agent</code>.</p>
+<h2>Mapping from the Calibre schema</h2>
+<table>
+<thead>
+<tr>
+<th>Calibre table / column</th>
+<th>Ontology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>books</code></td>
+<td><code>cyb:Book</code> (title, sort title, author sort, <code>dcterms:issued</code> as gYear, added, modified, cover, library path, calibreId, calibreUuid)</td>
+</tr>
+<tr>
+<td><code>authors</code>, <code>books_authors_link</code></td>
+<td><code>cyb:Creator</code>; <code>cyb:Authorship</code> with <code>cyb:position</code> (link-row order); plus <code>dcterms:creator</code> shortcut</td>
+</tr>
+<tr>
+<td><code>publishers</code>, <code>books_publishers_link</code></td>
+<td><code>cyb:Publisher</code>, <code>cyb:publishedBy</code></td>
+</tr>
+<tr>
+<td><code>tags</code>, <code>books_tags_link</code></td>
+<td><code>cyb:Tag</code> (SKOS), <code>cyb:hasTag</code></td>
+</tr>
+<tr>
+<td><code>series</code>, <code>books_series_link</code>, <code>series_index</code></td>
+<td><code>cyb:Series</code>, <code>cyb:inSeries</code>, <code>cyb:seriesIndex</code></td>
+</tr>
+<tr>
+<td><code>languages</code>, <code>books_languages_link</code></td>
+<td><code>dcterms:language</code> → id.loc.gov ISO 639-2 IRIs</td>
+</tr>
+<tr>
+<td><code>ratings</code>, <code>books_pages_link</code>, <code>comments</code></td>
+<td><code>cyb:rating</code>, <code>cyb:pageCount</code>, <code>dcterms:description</code> (optional)</td>
+</tr>
+<tr>
+<td><code>identifiers</code></td>
+<td><code>cyb:Identifier</code> (scheme + value); <code>bibo:isbn</code>, <code>bibo:doi</code> shortcuts</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td><code>cyb:BookFile</code> (format, file name, size)</td>
+</tr>
+<tr>
+<td>custom "URL" / "Available at" / "Publication Type" / "Theme"</td>
+<td><code>cyb:sourceUrl</code> / <code>cyb:Source</code> / <code>cyb:PublicationType</code> (split on commas) / <code>cyb:Theme</code></td>
+</tr>
+<tr>
+<td><code>library_id</code></td>
+<td><code>cyb:CalibreLibrary</code></td>
+</tr>
+<tr>
+<td>not modelled</td>
+<td>annotations<em>, feeds, conversion_options, preferences, last_read_positions, books_plugin_data, </em>_dirtied, "Source Link" (a composite of URL and Available at)</td>
+</tr>
+</tbody>
+</table>
+<h2>Design decisions worth checking</h2>
+<p><strong>IRIs come from the Calibre uuid, not the id.</strong> Ids were reassigned in the July 2026 reconstruction, and uuids live in each book's OPF, so they should survive a Calibre restore. <em>What if</em> a future rebuild regenerates the uuids? Then every book IRI changes. If you know how the July rebuild was done, that would confirm or refute the assumption. Creators, publishers, tags and terms get name-based slugs; any colliding names get a hash suffix, so no name silently takes another's IRI.</p>
+<p><strong>Custom columns are bound by name, not number.</strong> The July reconstruction swapped columns 4 and 5.</p>
+<p><strong>Publication date is reduced to the year.</strong> Calibre stores a full timestamp, but only the year is meaningful. The sentinel <code>0101-…</code> (undefined) is dropped; 1 book has it.</p>
+<p><strong>The language codes are emitted, but not trusted.</strong> CyberneticsNLP has shown Calibre <code>lang_code</code> to be unreliable (id 2138 is tagged <code>eng</code> but is French).</p>
+<p><strong>Shortcuts are materialised for querying without a reasoner:</strong> <code>dcterms:creator</code>, <code>cyb:possiblyDenotes</code> (term → entity, at any confidence) and <code>cyb:mergedInto</code>. The term-to-book shortcut <code>cyb:indexedIn</code> is declared as a property chain but not materialised, which saves 154k triples. Queries use <code>^cyb:normalisesTo/cyb:inIndexOf</code> instead.</p>
+<p><strong>09b's term merges are recorded, not applied.</strong> <code>cyb:mergedByInitials</code> (219: "Wiener, N." → "Wiener, Norbert") and <code>cyb:mergedByAccent</code> (67) link variant terms to canonical ones, replicating <code>src/09b_build_index_analysis.py</code>. That script does not persist its rules, so the replication is verified against its output: every variant is absent from <code>index_analysis.json</code>, and the counts reconcile. Each term keeps its own entity; the merges are pipeline decisions, not identity assertions.</p>
+<p><strong>Creator ↔ person candidates.</strong> 53 <code>cyb:NameMatch</code> nodes link a Calibre creator to an index person where <code>author_sort</code> equals the index heading, e.g. Norbert Wiener the author and "Wiener, Norbert" the indexed subject. These are candidates, not <code>owl:sameAs</code>.</p>
+<p><strong>The namespace is a placeholder.</strong> <code>https://w3id.org/cybernetic-bookshelf/</code> resolves to nothing until a w3id.org redirect is registered (a free pull request to the w3id GitHub repository). Changing it means editing <code>BASE</code> in the script and the prefix in the ontology together.</p>
+<h2>Counts (build 2026-10-19)</h2>
+<p>The build has 755 books, 779 creators (1,035 authorships), 316 publishers, 1,227 tags, 1,683 identifiers and 928 files. Publication types by book (non-disjoint): monograph 576, anthology 113, textbook 33, collected works 27, proceedings 13, journal special issue 11, reference 7, catalog 3. There are 128,108 index terms and 154,568 index entries across 742 books with an index record (283 ok, 237 truncated, 15 garbled, 207 no index; 13 books have no record, the same number as KI-14's books without a PDF text row; identity of the two sets not checked). The 5,351 classifications yield 5,053 entities: 3,359 concepts, 1,287 persons, 312 organisations and 95 locations, plus 298 suppressed terms. 163 cache entries are skipped as stale: their term no longer occurs in any index (e.g. "and cybernetics"). Every node in <code>entity_network.json</code> (1,657) has a classification in the cache, so the graph covers the network's entity set. Total: about 1.36M triples. Full figures are in <code>03 Outputs/build report 2026-10-19.md</code>.</p>
+<h2>Validation</h2>
+<p>Every cyb: term used in the data is declared in the ontology. The data conforms to the SHACL shapes, and a negative test (deliberately broken nodes) raises the expected 6 violations. In two random samples of 40 books and 40 index entries each (seeds 99 and 7), every book's title, authors and author order, and every entry's book and term key, matched what was re-derived directly from <code>metadata.db</code> and <code>index_terms.json</code>. The six example queries and their results are in <code>03 Outputs/query results 2026-10-19.md</code>. Finally, the top persons by book count reproduce the pipeline's figures: "Wiener, Norbert" appears in 129 books, and 156 once "Wiener, N." is folded in, which equals <code>index_analysis.json</code>.</p>
+<h2>Upstream issues found along the way (not fixed — CyberneticsNLP repo)</h2>
+<ol>
+<li><strong><code>src/train_monograph_classifier.py:99</code> hard-codes <code>PUBLICATION_TYPE_COL = 5</code>.</strong> Since the July reconstruction, column 5 is <em>Theme</em> (740 rows of "Cybernetics"), and Publication Type is column 4. Any retraining since July has trained on Theme. <code>00_export_calibre.py</code> already looks the column up by name; the classifier should do the same. The vault memory note "custom_column_5 = monograph labels" is stale for the same reason.</li>
+<li><strong><code>src/14_entity_network.py:314-327</code> collapses every person sharing a surname into one node.</strong> It keeps the one in most books and drops the rest. Mary Catherine Bateson (7 books) and Julian Huxley (4) are missing from the network for this reason. 09b already merges initials safely, so this block is redundant where it is right and lossy where it is wrong.</li>
+<li><strong>The accent merge in <code>src/09b_build_index_analysis.py:242-251</code> reads <code>n_books</code>, but <code>index_vocab.json</code> only has <code>count</code>.</strong> Both sides score 0, so the accented form always becomes canonical: 14 of 67 merges point to the rarer form, e.g. <code>system</code> (68 books) → <code>systém</code> (1). Some merges are also not accent variants but different words in another language (<code>regulation</code>/<code>régulation</code>, <code>are</code>/<code>aré</code>). The canonical vocabulary therefore labels "system" as "systém".</li>
+<li><strong>09b does not persist its merge rules</strong>, so any consumer has to re-implement them, as this project does. Writing <code>json/index_merge_rules.json</code> would remove the duplication.</li>
+</ol>
+<h2>Limitations</h2>
+<p>Page locators and sub-entry hierarchy are not retained by <code>09_extract_index.py</code>, so an IndexEntry cannot say where in the book a heading points. Identity across terms is unresolved: "Wiener, Norbert" and "Wiener, N." are two Person entities joined only through <code>mergedInto</code>. There is no Wikidata reconciliation yet, because that pass in CyberneticsNLP is incomplete. Expert publication-type labels are attributed to Paul at the scheme level, not per assertion.</p>
+<h2>Possible next steps</h2>
+<p>The next steps, in rough order of value: (1) your review of the model; (2) register the w3id namespace; (3) reconcile persons, organisations and locations against Wikidata (<code>skos:exactMatch</code>, kept as classifications with provenance); (4) persist locators and sub-entries upstream in 09; (5) add a PROV run layer and the LDA topic layer, keyed to equivalence classes; (6) load into a triple store (Oxigraph or GraphDB) for the CyberneticsAR consumer.</p>
+<h2>How to run</h2>
+<p>From the project root, with rdflib installed (<code>pip install rdflib pyshacl</code>):</p>
+<pre><code>python3 &quot;_code/build_rdf.py&quot; --snapshot &quot;snapshot 2026-10-19&quot; --tag 2026-10-19
+python3 &quot;_code/validate_rdf.py&quot; --snapshot &quot;snapshot 2026-10-19&quot; --tag 2026-10-19
+</code></pre>
+<p>To refresh: copy the four inputs from the repo into a new <code>00 Inputs/snapshot &lt;date&gt;/</code>, add a MANIFEST, and run with a new tag. The build takes about 2 minutes and validation about 3.</p>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'neutral')});</script>
+</body></html>

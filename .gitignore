@@ -1,0 +1,25 @@
+# Input snapshots: only the MANIFEST (with sha256 checksums) is published.
+# metadata.db and the index JSONs stay out, as in CyberneticsNLP
+# (metadata.db also holds publisher blurbs, which are excluded from the graph).
+00 Inputs/**
+!00 Inputs/*/
+!00 Inputs/*/MANIFEST.md
+
+# Generated graphs (derived from the index data; regenerate locally)
+03 Outputs/*.ttl
+03 Outputs/*.ttl.gz
+04 Prototype/**/*.ttl
+04 Prototype/**/*.ttl.gz
+
+# Local working folders
+_to_delete/
+
+# OS and tooling noise
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.obsidian/
