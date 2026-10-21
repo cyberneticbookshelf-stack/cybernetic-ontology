@@ -20,6 +20,7 @@ Project-level working memory; takes precedence over the vault CLAUDE.md inside t
 - Index layer: IndexEntry (string in one book) → IndexTerm (lowercased corpus key) → EntityClassification (method, confidence, provenance) → Entity. Kinds and publication types are non-disjoint; never add disjointness axioms, and never align to a strict upper ontology (BFO/DOLCE) (19 Oct; BFO clash shown 20 Oct).
 - Classifications are provisional (CyberneticsNLP standing principle). Merges are recorded (`cyb:mergedInto`), never applied as identity; identity is to come from a reviewable resolver (20 Oct).
 - No publisher blurbs (Calibre `comments`) in the graph (Paul, 20 Oct); `--include-descriptions` is for local use only. Publisher names stay (Claude's reading; to confirm).
+- No ratings in the graph (Paul, 21 Oct): Calibre's ratings came from Amazon/Goodreads, not Paul, and are safe to ignore. Future reruns leave `cyb:rating` out. `_code/build_rdf.py` still emits them (144 triples from the original `metadata.db`); drop that step when the script is next edited. The public `metadata-public.db` already has no ratings.
 - Namespace deliberately undecided (Paul, 20 Oct). Don't push for a decision.
 - Book IRIs from the Calibre uuid. Tested 20 Oct: uuids survived the July rebuild, but a remove-and-re-add mints a new id and uuid, and Calibre reuses ids for different books. Never join index data and metadata from different snapshots.
 
