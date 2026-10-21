@@ -1,9 +1,11 @@
-# Input snapshots: only the MANIFEST (with sha256 checksums) is published.
+# Input snapshots: only the MANIFEST (with sha256 checksums) and the cleaned
+# metadata-public.db are published.
 # metadata.db and the index JSONs stay out, as in CyberneticsNLP
 # (metadata.db also holds publisher blurbs, which are excluded from the graph).
 00 Inputs/**
 !00 Inputs/*/
 !00 Inputs/*/MANIFEST.md
+!00 Inputs/*/metadata-public.db
 
 # Generated graphs (derived from the index data; regenerate locally)
 03 Outputs/*.ttl

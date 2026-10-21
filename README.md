@@ -24,7 +24,7 @@ The namespace `https://w3id.org/cybernetic-bookshelf/` is a placeholder and not 
 
 ## What is not in this repository
 
-The input files (`metadata.db`, `index_terms.json`, `index_vocab.json`, `entity_types_cache.json`) and the graphs built from them are kept out. This follows CyberneticsNLP, which keeps the same files out of its public repository. `metadata.db` also contains publisher blurbs, which the graph excludes. To rebuild, place a snapshot with those four files under `00 Inputs/<snapshot>/` and check the files against its MANIFEST.
+The Calibre catalogue is published as a cleaned copy, `00 Inputs/snapshot 2026-10-19/metadata-public.db`. It leaves out the publisher blurbs, ratings, reading positions, annotations and personal GUI settings; the MANIFEST lists what was removed and the checksums of both copies. The index files (`index_terms.json`, `index_vocab.json`, `entity_types_cache.json`) and the graphs built from them are kept out, as in CyberneticsNLP. To rebuild, place a snapshot with `metadata.db` and those three files under `00 Inputs/<snapshot>/` and check the files against its MANIFEST.
 
 ## Running
 

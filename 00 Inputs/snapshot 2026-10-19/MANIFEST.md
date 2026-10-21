@@ -14,3 +14,15 @@ They are the outputs of the 20 September 2026 growth run: 755 Calibre books; can
 Code replicated in `_code/build_rdf.py`: `src/09b_build_index_analysis.py`, sha256 `cc41d741cdef2ae6484cf84d6b6702c498a9cd191d7f2105697d8841e88d69b3` (identical in the local copy and the live repo).
 
 Not used: `entity_network.json`. The local copy (20 Sep, 11:50) differs from the live one, which was rebuilt that evening. The ontology does not depend on it; the cross-check that all network nodes have a classification was run on the local copy.
+
+## Public copy of `metadata.db` (21 Oct 2026, AshbyX)
+
+`metadata-public.db` is the copy of `metadata.db` published on GitHub (Paul, 21 Oct). It is a cleaned copy of the file above (sha256 `9fae4a49…`):
+
+- Removed: publisher blurbs (`comments`), ratings (`ratings`, `books_ratings_link`), reading position (`last_read_positions`), annotations, `conversion_options`, and personal Calibre GUI settings in `preferences` (saved searches, virtual libraries, user categories, view state, plugin settings).
+- Kept: everything else, unchanged. That is books, authors, publishers, identifiers, tags, languages, series, pages, formats and custom columns. Integrity check: ok. VACUUMed.
+- sha256 `334b7a1e9bac03afce1be42d25b1f5f4ca7e0d376136669259592b44f695d7a7`.
+
+Check (21 Oct): `build_rdf.py` was run on both copies. The index graph is identical. The bibliographic graph differs only by the 144 `cyb:rating` triples (43,837 vs 43,693 triples).
+
+To build from the public copy, rename it to `metadata.db` in a snapshot folder with the three index JSONs. They are not published, as in CyberneticsNLP.
