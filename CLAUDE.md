@@ -45,7 +45,8 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 7. Move chain-derived relations into `build_rdf.py`; after review, promote the alignment module into the core.
 8. `_code/take_snapshot.py`. It should:
    - copy the inputs from cybersonic, write the MANIFEST and make `metadata-public.db`;
-   - refuse to run if the mount is empty or the book ids in `metadata.db` and the index JSONs disagree.
+   - refuse to run if the mount is empty or the book ids in `metadata.db` and the index JSONs disagree;
+   - compare cybersonic's files with the local working copy and warn if they differ, since rsync runs three ways.
    - Open question: whether bibliographic-only snapshots, taken from the running library on NorbertX, are wanted at all (Paul to decide).
 9. In a CyberneticsNLP session, propose that its data exports also go to the private data repo, making snapshots tagged commits rather than copies off a mount.
 10. When editing `build_rdf.py`: drop `cyb:rating`.
@@ -59,7 +60,7 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
   - References to `04 Resources/…`, the practice journal and the vault CLAUDE.md are outside the repo. A colleague can't follow them.
 - **Masters (Paul, 21 Oct).** Three things, three masters:
   - CyberneticsNLP **code**: its GitHub repo.
-  - CyberneticsNLP **data** (`data/inputs/calibre/metadata.db`, `json/`; both gitignored, so not on GitHub): the copy on **cybersonic**. The NorbertX and AshbyX copies are working copies, kept in step with cybersonic by rsync (Paul, 21 Oct; direction to confirm: pulled from cybersonic, or pushed to it).
+  - CyberneticsNLP **data** (`data/inputs/calibre/metadata.db`, `json/`; both gitignored, so not on GitHub): the copy on **cybersonic**. The NorbertX and AshbyX copies are working copies, kept in step with cybersonic by rsync in any direction, depending on which machine Paul works from that day (Paul, 21 Oct). So cybersonic is the master by convention only, and a stale copy can overwrite it.
   - The Calibre library: the running library on NorbertX (below).
 - **Full snapshots** (all four input files, from one export) are taken from cybersonic only, via the sshfs mount at vault root `cybersonic/CyberneticsNLP/`, never from the Calibre library. The mount goes stale often; if the folder lists empty, stop and ask Paul to run `mcyber`. A new full snapshot needs CyberneticsNLP to have caught up with the running library first.
 - **Private data repo** `cyberneticbookshelf-stack/cybernetic-ontology-data` (proposed 21 Oct; Paul to create it, private and empty). It holds the full snapshots, original `metadata.db` included. When a new snapshot is taken, push it there first, then copy its MANIFEST and `metadata-public.db` into this repo. A local commit for `snapshot 2026-10-19` was prepared on 21 Oct in a cloud clone; it is not pushed yet and is lost if that session ends.
