@@ -43,6 +43,12 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 5. Re-add reconciliation between snapshots (title + date added, or PDF content hash).
 6. Extended kinds: tighten event rules; extend classifier coverage; Wikidata reconciliation.
 7. Move chain-derived relations into `build_rdf.py`; after review, promote the alignment module into the core.
+8. `_code/take_snapshot.py`. It should:
+   - copy the inputs from cybersonic, write the MANIFEST and make `metadata-public.db`;
+   - refuse to run if the mount is empty or the book ids in `metadata.db` and the index JSONs disagree.
+   - Open question: whether bibliographic-only snapshots, taken from the running library on NorbertX, are wanted at all (Paul to decide).
+9. In a CyberneticsNLP session, propose that its data exports also go to the private data repo, making snapshots tagged commits rather than copies off a mount.
+10. When editing `build_rdf.py`: drop `cyb:rating`.
 
 ## Infrastructure notes
 - **The repo is the master** (Paul, 21 Oct). GitHub `cyberneticbookshelf-stack/cybernetic-ontology` is public and shared with a colleague.
@@ -51,7 +57,12 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
   - The vault folder is a working copy, not a git checkout: iCloud clashes with `.git`, and AshbyX's shell can't delete git's lock files. Push from a cloud clone.
   - Untracked files stay vault-only: the inputs other than the MANIFEST and `metadata-public.db`, the generated `.ttl` graphs, and `_to_delete/`.
   - References to `04 Resources/…`, the practice journal and the vault CLAUDE.md are outside the repo. A colleague can't follow them.
-- Source of `metadata.db` (Paul, 20 Oct): the CyberneticsNLP repo, `data/inputs/calibre/metadata.db`, via the sshfs mount at vault root `cybersonic/CyberneticsNLP/`. The mount goes stale often; ask Paul to run `mcyber`. Snapshots are taken from there, never from the Calibre library.
+- **Masters (Paul, 21 Oct).** Three things, three masters:
+  - CyberneticsNLP **code**: its GitHub repo.
+  - CyberneticsNLP **data** (`data/inputs/calibre/metadata.db`, `json/`; both gitignored, so not on GitHub): the copy on **cybersonic**. The NorbertX and AshbyX copies are working copies.
+  - The Calibre library: the running library on NorbertX (below).
+- **Full snapshots** (all four input files, from one export) are taken from cybersonic only, via the sshfs mount at vault root `cybersonic/CyberneticsNLP/`, never from the Calibre library. The mount goes stale often; if the folder lists empty, stop and ask Paul to run `mcyber`. A new full snapshot needs CyberneticsNLP to have caught up with the running library first.
+- **Private data repo** `cyberneticbookshelf-stack/cybernetic-ontology-data` (proposed 21 Oct; Paul to create it, private and empty). It holds the full snapshots, original `metadata.db` included. When a new snapshot is taken, push it there first, then copy its MANIFEST and `metadata-public.db` into this repo. A local commit for `snapshot 2026-10-19` was prepared on 21 Oct in a cloud clone; it is not pushed yet and is lost if that session ends.
 - `~/cybersonic/CyberneticsNLP/` on NorbertX is an older local copy (20 Sep). The repo's own CLAUDE.md wrongly gives the mount path as `02 Projects/CyberneticsNLP/cybersonic/`.
 - The Calibre running library is on NorbertX at `~/Desktop/Cybernetic-Bookshelf/` (`metadata.db` of 14 Oct, newer than the repo's). Paul is not syncing it into CyberneticsNLP now. Read-only; it was used only for the uuid test via per-book OPFs.
 - There is no Zhared drive on NorbertX. calibre-web's stale `/Volumes/Zhared` setting must not be followed.
@@ -79,4 +90,4 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 | U4 | 09b doesn't persist merge rules | Reported, not fixed |
 | U5 | Calibre id reuse: id-keyed artefacts must be regenerated from one export | Reported |
 
-*Last updated: 21 October 2026, 13:55 (AshbyX: repo published; repo is master; cleaned metadata.db; ratings rule).*
+*Last updated: 21 October 2026, 13:55 (AshbyX: repo published; repo is master; cleaned metadata.db; ratings rule; cybersonic is CyberneticsNLP's data master; private data repo proposed).*
