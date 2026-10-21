@@ -29,7 +29,7 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 
 ## Active issues
 - No identity resolution yet: one entity per heading. "Wiener, N." and "Wiener, Norbert" are two persons, joined only by `cyb:mergedInto` in the core graph (prototype `resolution-sameas.ttl` shows the effect).
-- Reference `metadata.db`: Paul intends GitHub, but the file is gitignored and not there, and the repo is public. Options (cleaned copy + manifest, or manifest only) not yet decided.
+- Reference `metadata.db`: settled 21 Oct. A cleaned copy is published as `00 Inputs/snapshot 2026-10-19/metadata-public.db`, with both sha256s in its MANIFEST. The original stays in the vault only.
 
 ## Files modified this session (19–20 Oct 2026)
 - 19 Oct: project created. `00 Inputs/snapshot 2026-10-19/` (+ MANIFEST); `02 Ontology/cybonto.ttl`, `cybonto-shapes.ttl`, `queries/01–06`; `_code/build_rdf.py`, `_code/validate_rdf.py`; `03 Outputs/* 2026-10-19` (graph files moved to `_to_delete`, as they contain blurbs); `01 Notes/Design note 2026-10-19.md/.html`.
@@ -38,13 +38,19 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 ## Next session agenda
 1. Paul reviews the model + prototype report. Decide "Cold War" concept/event: one entity or two; confirm the publisher reading.
 2. Name/entity resolver: candidate generation, scoring with book context, two thresholds, review list, decisions recorded as classifications. Persons first, then works.
-3. Reference `metadata.db` location decision (GitHub manifest and/or cleaned copy).
+3. ~~Reference `metadata.db` location~~ (done 21 Oct: cleaned copy on GitHub).
 4. Upstream CyberneticsNLP fixes (see Known issues U1–U5), in a repo session.
 5. Re-add reconciliation between snapshots (title + date added, or PDF content hash).
 6. Extended kinds: tighten event rules; extend classifier coverage; Wikidata reconciliation.
 7. Move chain-derived relations into `build_rdf.py`; after review, promote the alignment module into the core.
 
 ## Infrastructure notes
+- **The repo is the master** (Paul, 21 Oct). GitHub `cyberneticbookshelf-stack/cybernetic-ontology` is public and shared with a colleague.
+  - Start each session by bringing the latest repo into the vault folder; never push the vault over it.
+  - End each session by committing and pushing.
+  - The vault folder is a working copy, not a git checkout: iCloud clashes with `.git`, and AshbyX's shell can't delete git's lock files. Push from a cloud clone.
+  - Untracked files stay vault-only: the inputs other than the MANIFEST and `metadata-public.db`, the generated `.ttl` graphs, and `_to_delete/`.
+  - References to `04 Resources/…`, the practice journal and the vault CLAUDE.md are outside the repo. A colleague can't follow them.
 - Source of `metadata.db` (Paul, 20 Oct): the CyberneticsNLP repo, `data/inputs/calibre/metadata.db`, via the sshfs mount at vault root `cybersonic/CyberneticsNLP/`. The mount goes stale often; ask Paul to run `mcyber`. Snapshots are taken from there, never from the Calibre library.
 - `~/cybersonic/CyberneticsNLP/` on NorbertX is an older local copy (20 Sep). The repo's own CLAUDE.md wrongly gives the mount path as `02 Projects/CyberneticsNLP/cybersonic/`.
 - The Calibre running library is on NorbertX at `~/Desktop/Cybernetic-Bookshelf/` (`metadata.db` of 14 Oct, newer than the repo's). Paul is not syncing it into CyberneticsNLP now. Read-only; it was used only for the uuid test via per-book OPFs.
@@ -73,4 +79,4 @@ Awaiting Paul's review of the model and the prototype. Then: the name/entity res
 | U4 | 09b doesn't persist merge rules | Reported, not fixed |
 | U5 | Calibre id reuse: id-keyed artefacts must be regenerated from one export | Reported |
 
-*Last updated: 20 October 2026, 06:35 (NorbertX).*
+*Last updated: 21 October 2026, 13:55 (AshbyX: repo published; repo is master; cleaned metadata.db; ratings rule).*
